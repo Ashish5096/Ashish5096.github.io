@@ -180,8 +180,8 @@ function draw()
         }
     }
     
-    requestAnimationFrame(draw);
-    //setTimeout(draw, 1000 / 30);
+    //requestAnimationFrame(draw);
+    setTimeout(draw, 1000 / 30);
 }
 
 
@@ -233,8 +233,8 @@ async function main()
     startBttn.onclick = function(){
         console.log("loadeddata");
         video.play();
-        //setTimeout(videoLoop, 1000 / 30);
-        draw()
+        setTimeout(draw, 1000 / 30);
+        //draw()
     }
 
     stopBttn.onclick = function(){
