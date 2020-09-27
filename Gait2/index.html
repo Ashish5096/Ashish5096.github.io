@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <style>
+
+            #heading{
+                text-align: center;
+            }
+
+            #pose-canvas{
+                position: absolute;
+            }
+            #pose-video{
+                display: none;
+            }
+
+            #container-1{
+                float: left;
+                width: 60%;
+                padding: 5px;
+            }
+
+            #container-2{
+                float: left;
+                width: 30%;
+                padding: 5px;
+            }
+
+            #gait-details{
+                font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            #gait-details td, #gait-details th {
+                
+                padding: 8px;
+            }
+
+            #gait-details th{
+                padding-top: 12px;
+                padding-bottom: 12px;
+                text-align: left;
+            }
+
+        </style>
+
+        <title>Gait Analysis</title>
+        
+        <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+       
+
+    </head>
+    <body>
+
+        <h1 id="heading">GAIT ANALYSIS</h1>
+
+
+            <div id="container-1">
+                <canvas id="pose-canvas"></canvas>
+                <video id="pose-video"> </video>
+            </div>
+
+            <div id="container-2">
+
+                <table id="gait-details">
+                    <tr>
+                        <th>Parameters</th>
+                        <th>Value</th>
+                        <th>Enable/Disable</th>
+                    </tr>
+
+                    <tr>
+                        <td>Age</td>
+                        <td></td>
+                        <td><button type="button">Detect</button></td>
+                    </tr>
+
+                    <tr>
+                        <td>Height</td>
+                        <td id="height"></td>
+                        <td><button id="bttn1" type="button">Detect</button></td>
+                    </tr>
+
+                    <tr>
+                        <td>Stride Length</td>
+                        <td id="stride"></td>
+                        <td><button id="bttn2" type="button">Detect</button></td>
+                    </tr>
+
+                    <tr>
+                        <td>Right Step Length</td>
+                        <td id="rs-d"></td>
+                        <td><button id="bttn3" type="button">Detect</button></td>
+                    </tr>
+
+                    <tr>
+                        <td>Left Step Length</td>
+                        <td id="ls-d"></td>
+                        <td><button id="bttn4" type="button">Detect</button></td>
+                    </tr>
+
+                    <tr>
+                        <td>Distance between Knees</td>
+                        <td id="knee-d"></td>
+                        <td><button id="bttn5" type="button">Detect</button></td>
+                    </tr>
+                </table>
+
+                <button id="start"type="button">Start</button>
+                <button id="stop" type="button">Stop</button>
+
+            </div>
+                
+        <script src="video-script.js"> </script>
+        
+    </body>
+</html>
