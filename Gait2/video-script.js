@@ -155,7 +155,7 @@ async function main()
         multiplier: 0.75,
     }
     
-    video.src = "videos/video2.mp4";
+    //video.src = "videos/video2.mp4";
     video.width = config.video.width;
     video.height= config.video.height;
 
@@ -265,5 +265,6 @@ function draw()
 
 
 document.addEventListener('DOMContentLoaded',function(){
+    video.src = "videos/video2.mp4";
     main();
 });
