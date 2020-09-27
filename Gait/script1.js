@@ -112,84 +112,6 @@ function drawLine(x1,y1,x2,y2,color)
     ctx.stroke();
 }
 
-async function main()
-{
-    const startBttn = document.getElementById("start");
-    const stopBttn = document.getElementById("stop");
-    const heightBttn = document.getElementById("bttn1");
-    const strideBttn = document.getElementById("bttn2");
-    const rightStepBttn = document.getElementById("bttn3");
-    const leftStepBttn = document.getElementById("bttn4");
-    const kneeBttn = document.getElementById("bttn5")
-
-    heightBttn.onclick = function(){
-        toggleHeight(heightBttn)
-    }
-
-    strideBttn.onclick = function(){
-        toggleStrideLength(strideBttn)
-    }
-
-    rightStepBttn.onclick = function(){
-        toggleRightStep(rightStepBttn)
-    }
-
-    leftStepBttn.onclick = function(){
-        toggleLeftStep(leftStepBttn)
-    }
-
-    kneeBttn.onclick = function(){
-        toggleKnee(kneeBttn)
-    }
-
-    const options = {
-        imageScaleFactor: 0.3,
-        outputStride: 16,
-        flipHorizontal: false,
-        minConfidence: 0.5,
-        maxPoseDetections: 5,
-        scoreThreshold: 0.5,
-        nmsRadius: 20,
-        detectionType: 'multiple',
-        multiplier: 0.75,
-    }
-
-    const constraints ={
-        audio: false,
-        video:{
-        width: config.video.width,
-        height: config.video.height,
-        facingMode: 'environment',
-        frameRate: { max: config.video.fps }
-        }
-    };
-    
-    video.width = config.video.width;
-    video.height= config.video.height;
-    navigator.mediaDevices.getUserMedia(constraints).then(stream => {
-        video.srcObject = stream;
-    });
-
-    canvas.width = config.video.width;
-    canvas.height = config.video.height;
-    console.log("Canvas initialized");
-
-    const poseNet = ml5.poseNet(video,options, modelReady);
-    poseNet.on('pose',gotPoses);
-
-    startBttn.onclick = function(){
-        console.log("loadeddata");
-        video.play();
-        //setTimeout(videoLoop, 1000 / 30);
-        draw()
-    }
-
-    stopBttn.onclick = function(){
-        video.pause()
-    }
-
-}
-
 function gotPoses(poses)
 {
     //console.log(poses)
@@ -198,7 +120,6 @@ function gotPoses(poses)
         pose = poses[0]
     }
 }
-
 
 function draw()
 {
@@ -264,6 +185,94 @@ function draw()
 }
 
 
+async function main()
+{
+    const startBttn = document.getElementById("start");
+    const stopBttn = document.getElementById("stop");
+    const heightBttn = document.getElementById("bttn1");
+    const strideBttn = document.getElementById("bttn2");
+    const rightStepBttn = document.getElementById("bttn3");
+    const leftStepBttn = document.getElementById("bttn4");
+    const kneeBttn = document.getElementById("bttn5")
+
+    heightBttn.onclick = function(){
+        toggleHeight(heightBttn)
+    }
+
+    strideBttn.onclick = function(){
+        toggleStrideLength(strideBttn)
+    }
+
+    rightStepBttn.onclick = function(){
+        toggleRightStep(rightStepBttn)
+    }
+
+    leftStepBttn.onclick = function(){
+        toggleLeftStep(leftStepBttn)
+    }
+
+    kneeBttn.onclick = function(){
+        toggleKnee(kneeBttn)
+    }
+
+    const options = {
+        imageScaleFactor: 0.3,
+        outputStride: 16,
+        flipHorizontal: false,
+        minConfidence: 0.5,
+        maxPoseDetections: 5,
+        scoreThreshold: 0.5,
+        nmsRadius: 20,
+        detectionType: 'multiple',
+        multiplier: 0.75,
+    }
+
+    const poseNet = ml5.poseNet(video,options, modelReady);
+    poseNet.on('pose',gotPoses);
+
+    startBttn.onclick = function(){
+        console.log("loadeddata");
+        video.play();
+        //setTimeout(videoLoop, 1000 / 30);
+        draw()
+    }
+
+    stopBttn.onclick = function(){
+        video.pause()
+    }
+
+}
+
+
+
+
+
+
+async function init_camera_canvas()
+{
+    const constraints ={
+        audio: false,
+        video:{
+        width: config.video.width,
+        height: config.video.height,
+        facingMode: 'environment',
+        frameRate: { max: config.video.fps }
+        }
+    };
+    
+    video.width = config.video.width;
+    video.height= config.video.height;
+
+    canvas.width = config.video.width;
+    canvas.height = config.video.height;
+    console.log("Canvas initialized");
+
+    navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+        video.srcObject = stream;
+        main();
+    });
+}
+
 document.addEventListener('DOMContentLoaded',function(){
-    main();
+    init_camera_canvas();
 });
