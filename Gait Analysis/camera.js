@@ -9,6 +9,7 @@ async function init_camera()
       video:{
       width: config.video.width,
       height: config.video.height,
+      facingMode: 'environment',
       frameRate: { max: config.video.fps }
       }
     };
