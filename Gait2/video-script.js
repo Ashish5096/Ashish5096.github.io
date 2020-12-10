@@ -267,7 +267,7 @@ async function main()
     }
     
     video.src = "videos/video3.mp4";
-    video.playbackRate = 0.1;                // video File
+    //video.playbackRate = 0.1;                // video File
     //video.src ="http://192.168.43.82:4747/"       //  IP web cam
 
     video.width = config.video.width;
