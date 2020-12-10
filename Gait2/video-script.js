@@ -1,39 +1,109 @@
-
+//Global Variables
 const canvas =  document.getElementById("pose-canvas");
 const ctx = canvas.getContext("2d");
 const video = document.getElementById("pose-video");
-let hflag =false, kflag=false, strideflag=false, rsflag=false, lsflag=false;
-let pose;
-var d1=0,d2=0;
+
+var dflag=false, kflag=false, strideflag=false, rsflag=false, lsflag=false;
+var lr_step_threshold=0, initial_height_px=0, height_cm=156;
+var  n1=0, n2=0, start_point=0,cnfThreshold=0.10;
+var pose;
 
 const config ={
-    video:{ width: 640, height: 480, fps: 30}
+    video:{ width: 480, height: 640, fps: 30}
 };
 
-
-function toggleHeight(button)
+async function initializeParameters(button)
 {
-    if (hflag) 
+    // Initializing parameters like height, start point, lr_step_threshold
+
+    let eyeL = pose.pose.leftEye
+    let eyeR = pose.pose.rightEye
+    let ankleL = pose.pose.leftAnkle
+    let ankleR = pose.pose.rightAnkle
+    let kneeR = pose.pose.rightKnee
+    let count =0;
+    let timeFrame = 1000
+    let start = new Date().getTime();
+    let end = start;
+    
+    while(end - start < timeFrame)
     {
-        hflag = false;
-        button.innerHTML= "Detect"; 
+        if(eyeL.confidence >= cnfThreshold && eyeR.confidence >= cnfThreshold && ankleL.confidence >= cnfThreshold && ankleR.confidence>=cnfThreshold)
+        {
+            start_point = start_point+ (ankleL.y +ankleR.y)/2
+            lr_step_threshold = lr_step_threshold + distance(0, ankleL.y, 0, ankleR.y)
+            initial_height_px = initial_height_px+ (distance(0, eyeL.y, 0, ankleL.y) + distance(0, eyeR.y, 0, ankleR.y))/2;
+            count = count +1;
+            button.innerHTML = "Initializing ...."
+        }
+
+        end = new Date().getTime();
+    }
+
+
+    height_cm = document.getElementById("height").value;
+    initial_height_px  = (initial_height_px / count).toFixed(2);
+    start_point = (start_point / count).toFixed(2)
+    lr_step_threshold = ((lr_step_threshold/count) * (height_cm/initial_height_px)).toFixed(2);
+
+    button.innerHTML = "Done"
+}
+
+function toggleDistance(button)
+{
+    // To Toggle distance button between detect and pause
+
+    if (dflag)
+    {
+        dflag = false;
+        button.innerHTML= "Start"; 
     } 
     else 
     {
-        hflag = true;
-        button.innerHTML= "Pause";
+        dflag = true;
+        timer()
+        button.innerHTML= "Stop";
+        
     }
+}
+
+function timer()
+{
+    // Timer Function, Starts when distance button is in detect mode
+    // Gets cleared when distance button is in pause mode
+
+    let sec=0,min=0;
+
+    var time = setInterval(function(){
+    	
+        if (!dflag) {
+            clearInterval(time);
+        }
+        
+    	document.getElementById('time').innerHTML=min+":"+sec;
+        sec++;
+
+        if(sec == 60)
+        {
+            sec=0;
+            min++;
+        }
+        
+    }, 1000);
 }
 
 function toggleKnee(button)
 {
-    if (kflag) 
+    // To toggle knee button between Detect and pause
+
+    if (kflag)
     {
         kflag = false;
         button.innerHTML= "Detect"; 
     } 
     else 
     {
+        
         kflag = true;
         button.innerHTML= "Pause";
     }
@@ -41,24 +111,37 @@ function toggleKnee(button)
 
 function toggleStrideLength(button)
 {
+    // To toggle stride length button between Detect and pause
+    // Activates only when both right and left step length is in detect mode
+
     if (strideflag) 
     {
         strideflag = false;
         button.innerHTML= "Detect"; 
     } 
-    else 
-    {
-        strideflag = true;
-        button.innerHTML= "Pause";
+    else {
+
+        if(!rsflag){
+            document.getElementById("stride").innerHTML= "Activate Right Step Length"
+        }
+        else if(!lsflag){
+            document.getElementById("stride").innerHTML = "Activate Left Step Length"
+        }
+        else{
+            strideflag = true;
+            button.innerHTML= "Pause";
+        }   
     }
 }
 
 function toggleRightStep(button)
 {
+    // To toggle right step length button between Detect and pause
+
     if (rsflag) 
     {
         rsflag = false;
-        button.innerHTML= "Detect"; 
+        button.innerHTML= "Detect";
     } 
     else 
     {
@@ -69,10 +152,12 @@ function toggleRightStep(button)
 
 function toggleLeftStep(button)
 {
+    // To toggle left step length button between detect and pause
+
     if (lsflag) 
     {
         lsflag = false;
-        button.innerHTML= "Detect"; 
+        button.innerHTML= "Detect";
     } 
     else 
     {
@@ -81,13 +166,10 @@ function toggleLeftStep(button)
     }
 }
 
-function modelReady()
-{
-    console.log('Model Ready')
-}
-
 function distance(x1,y1,x2,y2)
 {
+    // calculate eucliedean distance between point(x1,y1) and (x2,y2)
+
     let a = x2-x1;
     let b = y2-y1;
     let result = Math.sqrt( a*a + b*b);
@@ -97,6 +179,8 @@ function distance(x1,y1,x2,y2)
 
 function drawPoint(x, y, radius, color)
 {
+    // draw a solid circle of specified radius and color at point(x,y)
+
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fillStyle = color;
@@ -105,6 +189,7 @@ function drawPoint(x, y, radius, color)
 
 function drawLine(x1,y1,x2,y2,color)
 {
+    // draw a line from point(x1,y1) to point(x2,y2)
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -113,18 +198,41 @@ function drawLine(x1,y1,x2,y2,color)
     ctx.stroke();
 }
 
+function modelReady()
+{
+    // callback function, gets called when posenet model has loaded successfully
+    
+    console.log('Model Ready')
+    video.play();
+    draw();
+}
+
+function gotPoses(poses)
+{
+    // callback function, gets called posenet detects poses
+
+    //console.log(poses)
+    if(poses.length > 0)
+    {
+        pose = poses[0]
+    }
+}
+
+
 async function main()
 {
-    const startBttn = document.getElementById("start");
-    const stopBttn = document.getElementById("stop");
-    const heightBttn = document.getElementById("bttn1");
-    const strideBttn = document.getElementById("bttn2");
-    const rightStepBttn = document.getElementById("bttn3");
-    const leftStepBttn = document.getElementById("bttn4");
-    const kneeBttn = document.getElementById("bttn5")
+    // Main function
+    // Initialize required variables, load model, etc.
 
-    heightBttn.onclick = function(){
-        toggleHeight(heightBttn)
+    const initializeBttn = document.getElementById("bttn3");
+    const strideBttn = document.getElementById("bttn4");
+    const rightStepBttn = document.getElementById("bttn5");
+    const leftStepBttn = document.getElementById("bttn6");
+    const kneeBttn = document.getElementById("bttn7")
+    const distanceBttn = document.getElementById("bttn8");
+
+    initializeBttn.onclick = function(){
+        initializeParameters(initializeBttn)
     }
 
     strideBttn.onclick = function(){
@@ -143,19 +251,25 @@ async function main()
         toggleKnee(kneeBttn)
     }
 
+    distanceBttn.onclick = function(){
+        toggleDistance(distanceBttn)
+    }
+
     const options = {
-        imageScaleFactor: 0.3,
-        outputStride: 16,
-        flipHorizontal: false,
-        minConfidence: 0.5,
-        maxPoseDetections: 5,
-        scoreThreshold: 0.5,
+        architecture: 'MobileNetV1',
+        scoreThreshold: 0.6,
         nmsRadius: 20,
         detectionType: 'multiple',
-        multiplier: 0.75,
+        maxPoseDetections: 2,
+        flipHorizontal: false,
+        multiplier: 0.50,
+        outputStride: 16,    
     }
     
-    //video.src = "videos/video2.mp4";
+    video.src = "videos/video3.mp4";
+    video.playbackRate = 0.1;                // video File
+    //video.src ="http://192.168.43.82:4747/"       //  IP web cam
+
     video.width = config.video.width;
     video.height= config.video.height;
 
@@ -165,40 +279,44 @@ async function main()
 
     const poseNet = ml5.poseNet(video,options, modelReady);
     poseNet.on('pose',gotPoses);
-
-
-    startBttn.onclick = function(){
-        console.log("loadeddata");
-        video.play();
-        //setTimeout(videoLoop, 1000 / 30);
-        draw()
-    }
-
-    stopBttn.onclick = function(){
-        video.pause()
-    }
-
 }
 
-function gotPoses(poses)
+
+function calculateAngle(x1,y1,x2,y2,x3,y3)
 {
-    console.log(poses)
-    if(poses.length > 0)
-    {
-        pose = poses[0]
-    }
-}
+    // calculate angle between the lines
+    // considering a line of slope 0 at point (x2,y2)
+     
+    let m1 = (y2-y1)/(x2-x1)    
+    let m2 = 0
+    let m3 = (y3-y2)/(x3-x2)    
 
+    let a1 = Math.abs((m2-m1)/(1+ m1*m2))
+    let a2 = Math.abs((m3-m2)/(1+ m3*m2))
+
+    let angle_rad1 = Math.atan(a1)
+    let angle_rad2 = Math.atan(a2)
+        
+    let angle1 = angle_rad1 *(180.0 / Math.PI)
+    let angle2 = angle_rad2 *(180.0 / Math.PI)
+    
+    let angle = (angle1+ angle2).toFixed(2)
+
+    return angle
+}
 
 function draw()
 {
+    // draw image frame,skeleton points
+    // calculate right & left step length,stride length, joint angles and display it
+
     if (video.paused || video.ended) {
         return;
     }
     ctx.drawImage(video,0, 0, video.width, video.height)
     if(pose)
     {
-        for(i=0;i< pose.pose.keypoints.length;i++)
+        for(var i=0;i< pose.pose.keypoints.length;i++)
         {
             let x = pose.pose.keypoints[i].position.x;
             let y = pose.pose.keypoints[i].position.y
@@ -217,44 +335,84 @@ function draw()
 
         let eyeL = pose.pose.leftEye
         let eyeR = pose.pose.rightEye
+        
         let ankleL = pose.pose.leftAnkle
         let ankleR = pose.pose.rightAnkle
         let kneeL = pose.pose.leftKnee
         let kneeR = pose.pose.rightKnee
+        let hipR = pose.pose.rightHip
+        let hipL = pose.pose.leftHip
 
-        if (hflag == true)
+        //drawPoint(kneeR.x,kneeR.y,3,'yellow')
+
+        let current_height_px = ( (distance(0, eyeL.y, 0, ankleL.y) + distance(0, eyeR.y, 0, ankleR.y))/2 ).toFixed(2);
+        let px2cm_factor= (height_cm/current_height_px).toFixed(2);
+        
+        //Right Knee Angle 
+        document.getElementById("rk-angle").innerHTML = calculateAngle(hipR.x, hipR.y, kneeR.x, kneeR.y, ankleR.x, ankleR.y)
+
+        //Left Knee Angle 
+        document.getElementById("lk-angle").innerHTML = calculateAngle(hipL.x, hipL.y, kneeL.x, kneeL.y, ankleL.x, ankleL.y)
+
+        // Hip Angle
+        let mid_x = (hipR.x + hipL.x)/2;
+        let mid_y = (hipR.y + hipL.y)/2;
+        document.getElementById("hip-angle").innerHTML = (180-calculateAngle(kneeR.x, kneeR.y,mid_x, mid_y, kneeL.x, kneeL.y)).toFixed(2)
+        
+
+        if(dflag)
         {
-            var d = distance(eyeL.x, eyeL.y, ankleL.x, ankleL.y)
-            document.getElementById("height").innerHTML= d.toFixed(2);
+            let end_point = (ankleL.y+ankleR.y)/2
+            let d = Math.abs(start_point - end_point)
+            d = (height_cm/initial_height_px) * (d)
+            document.getElementById("distance").innerHTML = d.toFixed(2)
         }
 
         if(kflag == true)
         {
-            var d = distance(kneeL.x, kneeL.y, kneeR.x, kneeR.y)
+            let d = distance(kneeL.x, kneeL.y, kneeR.x, kneeR.y)
+            d = px2cm_factor * (d)
             document.getElementById("knee-d").innerHTML= d.toFixed(2);
         }
 
         if(rsflag == true)
         {
-            var d = distance(ankleL.x, ankleL.y, ankleR.x, ankleR.y)
-            document.getElementById("rs-d").innerHTML = d.toFixed(2);
-            d1=d;
+            let d = ankleR.y - ankleL.y
+            d = px2cm_factor * (d)
+
+            if (d <= lr_step_threshold)
+            {
+                document.getElementById("rs-d").innerHTML = 0;
+            }
+            else
+            {
+                document.getElementById("rs-d").innerHTML = (d-lr_step_threshold).toFixed(2);
+                n1=d;
+            } 
         }
 
         if(lsflag == true)
         {
-            var d = distance(ankleL.x, ankleL.y, ankleR.x, ankleR.y)
-            document.getElementById("ls-d").innerHTML = d.toFixed(2)
-            d2=d;
+            let d = ankleL.y - ankleR.y
+            d = px2cm_factor * (d)
+
+            if (d <= lr_step_threshold)
+            {
+                document.getElementById("ls-d").innerHTML = 0;
+            }
+            else
+            {
+                document.getElementById("ls-d").innerHTML = (d- lr_step_threshold).toFixed(2);
+                n2=d;
+            } 
         }
 
         if(strideflag == true)
         {
-            if( (d1+d2) >0 )
-                document.getElementById("stride").innerHTML = (d1+d2).toFixed(2)
+            if( n1 > 0 && n2 > 0 )
+                document.getElementById("stride").innerHTML = (n1+n2).toFixed(2)
             else
                 document.getElementById("stride").innerHTML = "Unable to detect feet";
-
         }
 
     }
@@ -264,7 +422,6 @@ function draw()
 }
 
 
-document.addEventListener('DOMContentLoaded',function(){
-    video.src = "videos/video2.mp4";
+document.addEventListener("DOMContentLoaded",function(){
     main();
 });
