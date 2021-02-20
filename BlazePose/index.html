@@ -54,11 +54,11 @@
             }
 
             #block-2 button{
-                width: 100%;
+                width: 45%;
                 background-color: #4CAF50;
                 color: white;
                 padding: 10px 20px;
-                margin: 8px 0;
+                margin: 8px 6px;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
@@ -101,18 +101,17 @@
                     padding: 5px;  
                 }
             }
-            
 
         </style>
 
         <title>Gait Analysis</title>
         <link rel="icon" type="image/png" href="../assets/img/uoh.png">
 
-        <script src="assets/camera_utils.js" crossorigin="anonymous"></script>
-        <script src="assets/control_utils.js" crossorigin="anonymous"></script>
-        <script src="assets/drawing_utils.js" crossorigin="anonymous"></script>
-        <script src="assets/pose.js" crossorigin="anonymous"></script>
-               
+        <script src="../assets/blaze/camera_utils.js" crossorigin="anonymous"></script>
+        <script src="../assets/blaze/control_utils.js" crossorigin="anonymous"></script>
+        <script src="../assets/blaze/drawing_utils.js" crossorigin="anonymous"></script>
+        <script src="../assets/blaze/pose.js" crossorigin="anonymous"></script>
+
     </head>
     <body>
 
@@ -121,7 +120,7 @@
 
             <div id="container-1">
                 <canvas id="pose-canvas"></canvas>
-                <video id="pose-video" loop muted > </video>
+                <video id="pose-video" loop muted> </video>
             </div>
 
             <div id="container-2">
@@ -135,6 +134,7 @@
                     <label for="height">Height:</label>
                     <input type="text" id="height" name="height" placeholder="Your height in cm.."><br>
                     <button type="button" id="bttn3">Initialize Parameters</button>
+                    <button type="button" id="bttn4">Reset</button>
                 </div>
 
                 <table id="block-3">
@@ -147,19 +147,25 @@
                     <tr>
                         <td>Stride Length (cm)</td>
                         <td id="stride"></td>
-                        <td><button id="bttn4" type="button">Detect</button></td>
+                        <td><button id="bttn5" type="button">Detect</button></td>
                     </tr>
 
                     <tr>
                         <td>Right Step Length (cm)</td>
                         <td id="rs-d"></td>
-                        <td><button id="bttn5" type="button">Detect</button></td>
+                        <td></td>
                     </tr>
 
                     <tr>
                         <td>Left Step Length (cm)</td>
                         <td id="ls-d"></td>
-                        <td><button id="bttn6" type="button">Detect</button></td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td>No of Steps</td>
+                        <td id="nsteps"></td>
+                        <td></td>
                     </tr>
 
                     <tr>
@@ -204,21 +210,12 @@
                         <td id="hip-angle-R"></td>
                         <td id="hip-angle-L"></td>></td>
                     </tr>
-
-                    <tr>
-                        <td>No of Steps</td>
-                        <td id="nsteps"></td>
-                        <td></td>
-                    </tr>
-
                 </table>
 
-
             </div>
+
             <!--<script src="js/face-api.min.js"></script>-->
             <script src="camera-script.js"> </script>
-        
-        
-        
+         
     </body>
 </html>
